@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Bank Electricity Access Data</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .low-income {
+            background-color: red;
+            color: white;
+        }
+    </style>
+
+</head>
+<body>
+    <h1>World Bank Income Group Data</h1>
+
+    <!-- Button to fetch the data -->
+    <button id="fetch-btn">Fetch Data</button>
+
+    <!-- Placeholder for displaying data -->
+    <table id="data-table">
+    </table>
+
+    <script>
+        document.getElementById('fetch-btn').addEventListener('click', function() {
+            fetch('/fetch-data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const table = document.getElementById('data-table');
+                    table.innerHTML = '';  // Clear the table before adding new data
+
+                    // Display the headers (Country Code, Income Group, Table Name)
+                    let headerRow = '<tr><th>Country Code</th><th>Income Group</th><th>Table Name</th></tr>';
+                    table.innerHTML += headerRow;
+
+                    // Display relevant rows, filtering out unnecessary data
+                    data.slice(1).forEach(row => {
+                        const incomeGroup = (row[2] || '').trim();  // Index 2 for Income Group
+                        const tableName = (row[4] || '').trim();   // Index 4 for Table Name
+                        const countryCode = (row[0] || '').trim(); // Index 0 for Country Code
+
+                        // Only show rows where Income Group is not empty
+                        if (incomeGroup.length > 0) {
+                            let rowClass = '';
+                            if (incomeGroup.toLowerCase().includes('low')) {
+                                rowClass = 'low-income';  // Apply red background for 'low income'
+                            }
+
+                            let rowHtml = `<tr class="${rowClass}">`;
+                            rowHtml += `<td>${countryCode}</td>`;
+                            rowHtml += `<td>${incomeGroup}</td>`;
+                            rowHtml += `<td>${tableName}</td>`;
+                            rowHtml += '</tr>';
+                            table.innerHTML += rowHtml;
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('data-table').innerHTML = '<tr><td>Error fetching data</td></tr>';
+                });
+        });
+    </script>
+
+</body>
+</html>
